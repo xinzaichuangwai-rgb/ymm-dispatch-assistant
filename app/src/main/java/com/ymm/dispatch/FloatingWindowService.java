@@ -243,11 +243,21 @@ public class FloatingWindowService extends Service {
                 int width = metrics.widthPixels;
                 int height = metrics.heightPixels;
 
+                android.hardware.display.VirtualDisplay virtualDisplay =
+                        mediaProjection.createVirtualDisplay("screen_capture",
+                                width, height, metrics.densityDpi,
+                                android.hardware.display.DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                                null, null, null);
+
+                // 等待一帧渲染
+                Thread.sleep(200);
+
+                // 使用ImageReader截取
                 android.media.ImageReader imageReader = android.media.ImageReader.newInstance(
                         width, height, PixelFormat.RGBA_8888, 2);
 
-                android.hardware.display.VirtualDisplay virtualDisplay =
-                        mediaProjection.createVirtualDisplay("screen_capture",
+                android.hardware.display.VirtualDisplay vd =
+                        mediaProjection.createVirtualDisplay("capture2",
                                 width, height, metrics.densityDpi,
                                 android.hardware.display.DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
                                 imageReader.getSurface(), null, null);
@@ -277,16 +287,19 @@ public class FloatingWindowService extends Service {
 
                     image.close();
                 }
+                imageReader.close();
+                if (vd != null) vd.release();
+                if (virtualDisplay != null) virtualDisplay.release();
 
                 if (bitmap == null) {
-                    imageReader.close();
-                    if (virtualDisplay != null) virtualDisplay.release();
                     runOnUI(() -> tvResultText.setText("❌ 截屏失败，请重试"));
                     return;
                 }
 
+                final android.graphics.Bitmap finalBitmap = bitmap;
+
                 // OCR识别
-                InputImage inputImage = InputImage.fromBitmap(bitmap, 0);
+                InputImage inputImage = InputImage.fromBitmap(finalBitmap, 0);
                 textRecognizer.process(inputImage)
                         .addOnSuccessListener(visionText -> {
                             String fullText = visionText.getText();
@@ -298,16 +311,11 @@ public class FloatingWindowService extends Service {
                                     getSystemService(Context.CLIPBOARD_SERVICE);
                             cm.setPrimaryClip(ClipData.newPlainText("dispatch", result));
                             Toast.makeText(this, "✅ 抓取成功，已复制", Toast.LENGTH_SHORT).show();
-
-                            if (virtualDisplay != null) virtualDisplay.release();
-                            imageReader.close();
-                            if (bitmap != null) bitmap.recycle();
                         })
-                        .addOnFailureListener(e -> {
-                            runOnUI(() -> tvResultText.setText("❌ 识别失败: " + e.getMessage()));
-                            if (virtualDisplay != null) virtualDisplay.release();
-                            imageReader.close();
-                            if (bitmap != null) bitmap.recycle();
+                        .addOnFailureListener(e -> runOnUI(() ->
+                                tvResultText.setText("❌ 识别失败: " + e.getMessage())))
+                        .addOnCompleteListener(task -> {
+                            if (finalBitmap != null) finalBitmap.recycle();
                         });
 
             } catch (Exception e) {
