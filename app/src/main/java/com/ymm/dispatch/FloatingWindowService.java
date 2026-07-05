@@ -14,6 +14,7 @@ import android.graphics.PixelFormat;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -34,7 +35,9 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.google.mlkit.vision.common.InputImage;
-import com.google.mlkit.vision.text.chinese.TextRecognizer;
+import com.google.mlkit.vision.text.TextRecognition;
+import com.google.mlkit.vision.text.TextRecognizer;
+import com.google.mlkit.vision.text.TextRecognizerOptions;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -77,7 +80,7 @@ public class FloatingWindowService extends Service {
     public void onCreate() {
         super.onCreate();
         windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-        textRecognizer = TextRecognizer.getClient();
+        textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
         createNotificationChannel();
         showFloatingWindow();
         isRunning = true;
