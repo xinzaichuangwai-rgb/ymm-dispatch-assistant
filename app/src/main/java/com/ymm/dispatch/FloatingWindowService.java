@@ -34,7 +34,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.google.mlkit.vision.common.InputImage;
-import com.google.mlkit.vision.text.chinese.ChineseTextRecognizer;
+import com.google.mlkit.vision.text.chinese.TextRecognizer;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -55,7 +55,7 @@ public class FloatingWindowService extends Service {
     private Button btnOCR, btnVoice, btnYMM, btnCopy;
 
     private MediaProjection mediaProjection;
-    private ChineseTextRecognizer textRecognizer;
+    private TextRecognizer textRecognizer;
 
     // 语音识别
     private SpeechRecognizer speechRecognizer;
@@ -77,7 +77,7 @@ public class FloatingWindowService extends Service {
     public void onCreate() {
         super.onCreate();
         windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-        textRecognizer = ChineseTextRecognizer.getClient();
+        textRecognizer = TextRecognizer.getClient();
         createNotificationChannel();
         showFloatingWindow();
         isRunning = true;
