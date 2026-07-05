@@ -1,9 +1,11 @@
 package com.ymm.dispatch;
+
 import android.Manifest;
-import android.content.Context;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,9 +15,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -131,18 +134,19 @@ public class MainActivity extends AppCompatActivity {
      * 自定义ActivityResultContract，用于请求MediaProjection
      */
     private static class MediaProjectionResultContract
-            extends ActivityResultContrac<Void, Intent> {
+            extends ActivityResultContract<Void, Intent> {
+
         @NonNull
         @Override
         public Intent createIntent(@NonNull Context context, Void input) {
-            return ((android.media.projection.MediaProjectionManager)
+            return ((MediaProjectionManager)
                     context.getSystemService(Context.MEDIA_PROJECTION_SERVICE))
                     .createScreenCaptureIntent();
         }
 
         @Override
-        public Intent parseResult(int resultCode, @NonNull android.content.Intent intent) {
-            if (resultCode != android.app.Activity.RESULT_OK) return null;
+        public Intent parseResult(int resultCode, @Nullable Intent intent) {
+            if (resultCode != Activity.RESULT_OK || intent == null) return null;
             return intent;
         }
     }
