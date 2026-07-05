@@ -1,7 +1,7 @@
 package com.ymm.dispatch;
-
 import android.Manifest;
 import android.content.Context;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -130,8 +131,7 @@ public class MainActivity extends AppCompatActivity {
      * 自定义ActivityResultContract，用于请求MediaProjection
      */
     private static class MediaProjectionResultContract
-            extends ActivityResultContracts.ActivityResultContract<Void, Intent> {
-
+            extends ActivityResultContrac<Void, Intent> {
         @NonNull
         @Override
         public Intent createIntent(@NonNull Context context, Void input) {
