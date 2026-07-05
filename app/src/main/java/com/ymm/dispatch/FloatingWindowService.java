@@ -446,10 +446,10 @@ public class FloatingWindowService extends Service {
 
             @Override
             public void onResults(Bundle results) {
-                ArrayList list = results.getStringArrayList(
+                ArrayList<String> list = results.getStringArrayList(
                         SpeechRecognizer.RESULTS_RECOGNITION);
                 if (list != null && !list.isEmpty()) {
-                    String text = list.get(0);
+                    String text = (String) list.get(0);
                     final String result = extractAndFormat(text);
                     runOnUI(() -> {
                         String display = text.length() > 60 ? text.substring(0, 60) + "..." : text;
@@ -473,10 +473,10 @@ public class FloatingWindowService extends Service {
 
             @Override
             public void onPartialResults(Bundle partialResults) {
-                ArrayList list = partialResults.getStringArrayList(
+                ArrayList<String> list = partialResults.getStringArrayList(
                         SpeechRecognizer.RESULTS_RECOGNITION);
                 if (list != null && !list.isEmpty()) {
-                    String text = list.get(0);
+                    String text = (String) list.get(0);
                     String display = text.length() > 60 ? text.substring(0, 60) + "..." : text;
                     runOnUI(() -> tvVoiceText.setText("🔊 " + display));
                 }
