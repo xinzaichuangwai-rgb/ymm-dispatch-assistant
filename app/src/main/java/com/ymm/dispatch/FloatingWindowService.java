@@ -37,7 +37,7 @@ import androidx.core.app.NotificationCompat;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
+import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -80,7 +80,7 @@ public class FloatingWindowService extends Service {
     public void onCreate() {
         super.onCreate();
         windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-        textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
+        textRecognizer = TextRecognition.getClient(new ChineseTextRecognizerOptions.Builder().build());
         createNotificationChannel();
         showFloatingWindow();
         isRunning = true;
@@ -243,21 +243,11 @@ public class FloatingWindowService extends Service {
                 int width = metrics.widthPixels;
                 int height = metrics.heightPixels;
 
-                android.hardware.display.VirtualDisplay virtualDisplay =
-                        mediaProjection.createVirtualDisplay("screen_capture",
-                                width, height, metrics.densityDpi,
-                                android.hardware.display.DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                                null, null, null);
-
-                // 等待一帧渲染
-                Thread.sleep(200);
-
-                // 使用ImageReader截取
                 android.media.ImageReader imageReader = android.media.ImageReader.newInstance(
                         width, height, PixelFormat.RGBA_8888, 2);
 
-                android.hardware.display.VirtualDisplay vd =
-                        mediaProjection.createVirtualDisplay("capture2",
+                android.hardware.display.VirtualDisplay virtualDisplay =
+                        mediaProjection.createVirtualDisplay("screen_capture",
                                 width, height, metrics.densityDpi,
                                 android.hardware.display.DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
                                 imageReader.getSurface(), null, null);
@@ -287,11 +277,10 @@ public class FloatingWindowService extends Service {
 
                     image.close();
                 }
-                imageReader.close();
-                if (vd != null) vd.release();
-                if (virtualDisplay != null) virtualDisplay.release();
 
                 if (bitmap == null) {
+                    imageReader.close();
+                    if (virtualDisplay != null) virtualDisplay.release();
                     runOnUI(() -> tvResultText.setText("❌ 截屏失败，请重试"));
                     return;
                 }
@@ -309,10 +298,15 @@ public class FloatingWindowService extends Service {
                                     getSystemService(Context.CLIPBOARD_SERVICE);
                             cm.setPrimaryClip(ClipData.newPlainText("dispatch", result));
                             Toast.makeText(this, "✅ 抓取成功，已复制", Toast.LENGTH_SHORT).show();
+
+                            if (virtualDisplay != null) virtualDisplay.release();
+                            imageReader.close();
+                            if (bitmap != null) bitmap.recycle();
                         })
-                        .addOnFailureListener(e -> runOnUI(() ->
-                                tvResultText.setText("❌ 识别失败: " + e.getMessage())))
-                        .addOnCompleteListener(task -> {
+                        .addOnFailureListener(e -> {
+                            runOnUI(() -> tvResultText.setText("❌ 识别失败: " + e.getMessage()));
+                            if (virtualDisplay != null) virtualDisplay.release();
+                            imageReader.close();
                             if (bitmap != null) bitmap.recycle();
                         });
 
@@ -452,7 +446,7 @@ public class FloatingWindowService extends Service {
 
             @Override
             public void onResults(Bundle results) {
-                ArrayList<String> list = results.getStringArrayList(
+                ArrayList list = results.getStringArrayList(
                         SpeechRecognizer.RESULTS_RECOGNITION);
                 if (list != null && !list.isEmpty()) {
                     String text = list.get(0);
@@ -479,7 +473,7 @@ public class FloatingWindowService extends Service {
 
             @Override
             public void onPartialResults(Bundle partialResults) {
-                ArrayList<String> list = partialResults.getStringArrayList(
+                ArrayList list = partialResults.getStringArrayList(
                         SpeechRecognizer.RESULTS_RECOGNITION);
                 if (list != null && !list.isEmpty()) {
                     String text = list.get(0);
