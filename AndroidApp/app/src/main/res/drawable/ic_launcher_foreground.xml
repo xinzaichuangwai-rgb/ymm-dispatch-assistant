@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 卡车简化图标 -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M20,45 L20,70 L28,70 A8,8 0 1,0 44,70 L64,70 A8,8 0 1,0 80,70 L88,70 L88,55 L82,45 L68,45 L68,38 L20,38 Z" />
+    <path
+        android:fillColor="#1a237e"
+        android:pathData="M24,42 L60,42 L60,52 L82,52 L86,58 L88,58 L88,52 L82,45 L68,45 L68,38 L24,38 Z" />
+    <circle
+        android:fillColor="#1a237e"
+        android:cx="36" android:cy="70" android:r="6" />
+    <circle
+        android:fillColor="#1a237e"
+        android:cx="72" android:cy="70" android:r="6" />
+</vector>
