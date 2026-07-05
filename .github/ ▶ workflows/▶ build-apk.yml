@@ -1,7 +1,10 @@
+# Build APK using GitHub Actions (no gradlew needed - uses system gradle)
 name: Build APK
 
 on:
   push:
+    branches: [ main, master ]
+  pull_request:
     branches: [ main, master ]
   workflow_dispatch:
 
@@ -10,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -18,17 +22,26 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Set up Android SDK
+    - name: Setup Android SDK
       uses: android-actions/setup-android@v3
-
-    - name: Build APK
-      uses: gradle/gradle-build-action@v3
       with:
-        gradle-version: 8.5
-        arguments: assembleDebug
+        packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
 
-    - name: Upload APK
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.4'
+
+    - name: Create local.properties
+      run: |
+        echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+    - name: Build Debug APK
+      run: gradle assembleDebug --no-daemon --stacktrace
+
+    - name: Upload Debug APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: ymm-dispatch-assistant-apk
+        path: app/build/outputs/apk/debug/*.apk
+        retention-days: 30
